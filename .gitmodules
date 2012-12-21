@@ -1,0 +1,6 @@
+[submodule "Game_Music_Emu"]
+	path = Game_Music_Emu
+	url = git@github.com:kode54/Game_Music_Emu.git
+[submodule "File_Extractor"]
+	path = File_Extractor
+	url = git@github.com:kode54/File_Extractor.git
