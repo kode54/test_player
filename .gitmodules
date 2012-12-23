@@ -4,3 +4,6 @@
 [submodule "File_Extractor"]
 	path = File_Extractor
 	url = git@github.com:kode54/File_Extractor.git
+[submodule "dumb"]
+	path = dumb
+	url = /home/chris/src/foobar2000/plugins/dumb
