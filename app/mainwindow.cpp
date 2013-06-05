@@ -560,7 +560,7 @@ public:
                 hStream = BASS_MIDI_StreamCreate( 16, BASS_STREAM_DECODE | BASS_MIDI_SINCINTER, SAMPLE_RATE );
                 if ( hStream )
                 {
-                    LoadFonts( "/mnt/windows/Users/Public/Music/Soundfonts/Colossus.SF2/Colossus_HSB_overlay.sflist" );
+                    LoadFonts( "/mnt/purgatory/Users/Public/Music/Soundfonts/Colossus.SF2/Colossus_SGM_overlay.sflist" );
 
                     BASS_MIDI_StreamEvent( hStream, 0, MIDI_EVENT_SYSTEM, MIDI_SYSTEM_DEFAULT );
 
