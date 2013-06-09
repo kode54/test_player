@@ -564,7 +564,11 @@ public:
                 hStream = BASS_MIDI_StreamCreate( 16, BASS_STREAM_DECODE | BASS_MIDI_SINCINTER, SAMPLE_RATE );
                 if ( hStream )
                 {
+#ifdef _WIN32
+                    LoadFonts( "E:\\Users\\Public\\Music\\SoundFonts\\Colossus.SF2\\Colossus_SGM_overlay.sflist" );
+#else
                     LoadFonts( "/mnt/purgatory/Users/Public/Music/Soundfonts/Colossus.SF2/Colossus_SGM_overlay.sflist" );
+#endif
 
                     BASS_MIDI_StreamEvent( hStream, 0, MIDI_EVENT_SYSTEM, MIDI_SYSTEM_DEFAULT );
 
@@ -1098,11 +1102,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     BASS_Init( 0, SAMPLE_RATE, 0, NULL, NULL );
 
+#ifdef _WIN32
+    BASS_PluginLoad( "bassflac.dll", 0 );
+    BASS_PluginLoad( "basswv.dll", 0 );
+#else
     BASS_PluginLoad( "/home/chris/src/bass/x64/libbassflac.so", 0 );
     BASS_PluginLoad( "/home/chris/src/bass/x64/libbasswv.so", 0 );
+#endif
 
     {
+#ifdef _WIN32
+        FILE * f = fopen( "E:\\emulate\\ps2\\pcsx2\\bios\\Scph39001.bin", "rb" );
+#else
         FILE * f = fopen( "/home/chris/ps2bios", "rb" );
+#endif
         fseek( f, 0, SEEK_END );
         int bios_size = ftell( f );
         fseek( f, 0, SEEK_SET );
