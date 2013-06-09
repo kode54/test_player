@@ -6,10 +6,10 @@
 	url = git@github.com:kode54/File_Extractor.git
 [submodule "dumb"]
 	path = dumb
-	url = /home/chris/src/foobar2000/plugins/dumb
+	url = git@github.com:kode54/dumb.git
 [submodule "midi_processing"]
 	path = midi_processing
-	url = /home/chris/src/deadbeef_plugins/midi/processing/
+	url = git@github.com:kode54/midi_processing.git
 [submodule "SegaCore"]
 	path = SegaCore
 	url = git@github.com:kode54/Highly_Theoretical.git
