@@ -7,7 +7,11 @@
 
 #include <gme/blargg_common.h>
 
+#ifdef _WIN32
+typedef wchar_t blargg_wchar_t;
+#else
 typedef uint16_t blargg_wchar_t;
+#endif
 
 #include <gme/gme.h>
 
@@ -997,7 +1001,7 @@ void FreeFonts()
     unsigned i;
     if ( hFonts && font_count )
     {
-        BASS_MIDI_StreamSetFonts( hStream, NULL, 0 );
+        BASS_MIDI_StreamSetFonts( hStream, (const BASS_MIDI_FONTEX*) NULL, 0 );
         for ( i = 0; i < font_count; ++i )
         {
             BASS_MIDI_FontFree( hFonts[ i ] );
