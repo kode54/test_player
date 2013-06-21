@@ -1102,7 +1102,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     BASS_Init( 0, SAMPLE_RATE, 0, NULL, NULL );
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
     BASS_PluginLoad( "bassflac.dll", 0 );
     BASS_PluginLoad( "basswv.dll", 0 );
 #else
@@ -1113,6 +1113,8 @@ MainWindow::MainWindow(QWidget *parent) :
     {
 #ifdef _WIN32
         FILE * f = fopen( "E:\\emulate\\ps2\\pcsx2\\bios\\Scph39001.bin", "rb" );
+#elif defined(__APPLE__)
+        FILE * f = fopen( "/Volumes/Purgatory/emulate/ps2/pcsx2/bios/Scph39001.bin", "rb");
 #else
         FILE * f = fopen( "/home/chris/ps2bios", "rb" );
 #endif

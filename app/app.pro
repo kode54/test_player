@@ -14,11 +14,14 @@ TEMPLATE = app
 DEFINES += HAVE_STDINT_H
 
 QMAKE_CXXFLAGS += -std=c++0x
+macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -stdlib=libc++
 
+LIBS += -L$$OUT_PWD/../../../../bass
 LIBS += -L$$OUT_PWD/../../../../bass/c
 
 LIBS += -lao -lbassmidi -lbass -lm
 
+INCLUDEPATH += ../../../../bass
 INCLUDEPATH += ../../../../bass/c
 
 SOURCES += main.cpp\
@@ -128,3 +131,5 @@ else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../viogsf/d
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../viogsf/libviogsf.a
 
 LIBS += -lz
+
+macx:LIBS += -lc++
