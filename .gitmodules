@@ -25,3 +25,6 @@
 [submodule "viogsf"]
 	path = viogsf
 	url = git@github.com:kode54/viogsf.git
+[submodule "hvl_replay"]
+	path = hvl_replay
+	url = git@github.com:kode54/foo_input_hvl

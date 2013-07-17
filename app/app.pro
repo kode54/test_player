@@ -130,6 +130,17 @@ win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../viogsf/rele
 else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../viogsf/debug/libviogsf.a
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../viogsf/libviogsf.a
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../hvl_replay/release/ -lhvl_replay
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../hvl_replay/debug/ -lhvl_replay
+else:unix: LIBS += -L$$OUT_PWD/../hvl_replay/ -lhvl_replay
+
+INCLUDEPATH += $$PWD/../hvl_replay
+DEPENDPATH += $$PWD/../hvl_replay
+
+win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../hvl_replay/release/hvl_replay.lib
+else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../hvl_replay/debug/hvl_replay.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../hvl_replay/libhvl_replay.a
+
 LIBS += -lz
 
 macx:LIBS += -lc++

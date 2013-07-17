@@ -47,6 +47,8 @@ extern "C" {
 
 #include "gba/GBA.h"
 
+#include "hvl_replay.h"
+
 #define SAMPLE_RATE 44100
 
 typedef struct tdumbfile_mem_status
@@ -926,68 +928,111 @@ public:
                 }
                 else
                 {
-                    dumbfile_mem_status memdata;
-                    DUMBFILE * f;
-
-                    memdata.ptr = (const unsigned char *) file.constData();
-                    memdata.offset = 0;
-                    memdata.size = file.size();
-
-                    f = dumbfile_open_ex(&memdata, &mem_dfs);
-                    if ( f )
+                    struct hvl_tune * tune = hvl_LoadTune((const uint8_t *)file.constData(), file.size(), SAMPLE_RATE, 2);
+                    if (tune)
                     {
-                        DUH * duh = dumb_read_any_quick( f, 0, 0 );
-                        if ( duh )
+                        int8 * buf = new int8[2048 * 2 * 4];
+                        int32 * buf32 = (int32*)buf;
+                        if (buf)
                         {
-                            DUH_SIGRENDERER * sr = duh_start_sigrenderer( duh, 0, 2, 0 );
-                            if ( sr )
+                            dev = ao_open_live( ao_default_driver_id(), &fmt, NULL );
+
+                            if ( dev )
                             {
-                                DUMB_IT_SIGRENDERER * itsr = duh_get_it_sigrenderer( sr );
-                                dumb_it_set_resampling_quality( itsr, 3 );
-                                dumb_it_set_ramp_style( itsr, 2 );
-
-                                sample_t ** buf = allocate_sample_buffer( 2, 2048 );
-                                if ( buf )
+                                running = true;
+                                while (running)
                                 {
-                                    dev = ao_open_live( ao_default_driver_id(), &fmt, NULL );
+                                    int const samples_per_frame = SAMPLE_RATE / 50;
 
-                                    if ( dev )
+                                    hvl_DecodeFrame(tune, buf, buf + 4, 8);
+
+                                    for ( long i = 0; i < samples_per_frame; i++ )
                                     {
-                                        const float delta = 65536.0f / SAMPLE_RATE;
-
-                                        running = true;
-                                        while (running)
-                                        {
-                                            dumb_silence( buf[0], 2048 * 2 );
-                                            long written = duh_sigrenderer_generate_samples( sr, 1.0f, delta, 2048, buf );
-                                            for ( long i = 0; i < written; i++ )
-                                            {
-                                                int sample = buf[0][ i * 2 + 0 ];
-                                                if ( (unsigned)(sample + 0x800000) >= 0x1000000 ) sample = ( sample >> 31 ) ^ 0x7fff;
-                                                else sample >>= 8;
-                                                sample_buffer[ i * 2 + 0 ] = sample;
-                                                sample = buf[0][ i * 2 + 1 ];
-                                                if ( (unsigned)(sample + 0x800000) >= 0x1000000 ) sample = ( sample >> 31 ) ^ 0x7fff;
-                                                else sample >>= 8;
-                                                sample_buffer[ i * 2 + 1 ] = sample;
-                                            }
-                                            ao_play( dev, (char *)sample_buffer, written * 2 * sizeof(short) );
-                                            if ( written < 2048 ) break;
-                                        }
-
-                                        ao_close( dev );
+                                        int sample = buf32[ i * 2 + 0 ];
+                                        if ( (unsigned)(sample + 0x800000) & 0xFF000000 ) sample = ( sample >> 31 ) ^ 0x7fff;
+                                        else sample >>= 8;
+                                        sample_buffer[ i * 2 + 0 ] = sample;
+                                        sample = buf32[ i * 2 + 1 ];
+                                        if ( (unsigned)(sample + 0x800000) & 0xFF000000 ) sample = ( sample >> 31 ) ^ 0x7fff;
+                                        else sample >>= 8;
+                                        sample_buffer[ i * 2 + 1 ] = sample;
                                     }
-
-                                    destroy_sample_buffer( buf );
+                                    ao_play( dev, (char *)sample_buffer, samples_per_frame * 2 * sizeof(short) );
                                 }
 
-                                duh_end_sigrenderer( sr );
-                            }
+                                ao_close( dev );
+                                }
 
-                            unload_duh( duh );
+                            delete [] buf;
                         }
 
-                        dumbfile_close( f );
+                        hvl_FreeTune(tune);
+                    }
+                    else
+                    {
+                        dumbfile_mem_status memdata;
+                        DUMBFILE * f;
+
+                        memdata.ptr = (const unsigned char *) file.constData();
+                        memdata.offset = 0;
+                        memdata.size = file.size();
+
+                        f = dumbfile_open_ex(&memdata, &mem_dfs);
+                        if ( f )
+                        {
+                            DUH * duh = dumb_read_any_quick( f, 0, 0 );
+                            if ( duh )
+                            {
+                                DUH_SIGRENDERER * sr = duh_start_sigrenderer( duh, 0, 2, 0 );
+                                if ( sr )
+                                {
+                                    DUMB_IT_SIGRENDERER * itsr = duh_get_it_sigrenderer( sr );
+                                    dumb_it_set_resampling_quality( itsr, 3 );
+                                    dumb_it_set_ramp_style( itsr, 2 );
+
+                                    sample_t ** buf = allocate_sample_buffer( 2, 2048 );
+                                    if ( buf )
+                                    {
+                                        dev = ao_open_live( ao_default_driver_id(), &fmt, NULL );
+
+                                        if ( dev )
+                                        {
+                                            const float delta = 65536.0f / SAMPLE_RATE;
+
+                                            running = true;
+                                            while (running)
+                                            {
+                                                dumb_silence( buf[0], 2048 * 2 );
+                                                long written = duh_sigrenderer_generate_samples( sr, 1.0f, delta, 2048, buf );
+                                                for ( long i = 0; i < written; i++ )
+                                                {
+                                                    int sample = buf[0][ i * 2 + 0 ];
+                                                    if ( (unsigned)(sample + 0x800000) & 0xFF000000 ) sample = ( sample >> 31 ) ^ 0x7fff;
+                                                    else sample >>= 8;
+                                                    sample_buffer[ i * 2 + 0 ] = sample;
+                                                    sample = buf[0][ i * 2 + 1 ];
+                                                    if ( (unsigned)(sample + 0x800000) & 0xFF000000 ) sample = ( sample >> 31 ) ^ 0x7fff;
+                                                    else sample >>= 8;
+                                                    sample_buffer[ i * 2 + 1 ] = sample;
+                                                }
+                                                ao_play( dev, (char *)sample_buffer, written * 2 * sizeof(short) );
+                                                if ( written < 2048 ) break;
+                                            }
+
+                                            ao_close( dev );
+                                        }
+
+                                        destroy_sample_buffer( buf );
+                                    }
+
+                                    duh_end_sigrenderer( sr );
+                                }
+
+                                unload_duh( duh );
+                            }
+
+                            dumbfile_close( f );
+                        }
                     }
                 }
             }
@@ -1140,6 +1185,8 @@ MainWindow::MainWindow(QWidget *parent) :
     sega_init();
 
     qsound_init();
+
+    hvl_InitReplayer();
 
     ui->setupUi(this);
 
