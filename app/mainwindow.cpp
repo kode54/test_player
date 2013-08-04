@@ -568,6 +568,8 @@ public:
                 {
 #ifdef _WIN32
                     LoadFonts( "E:\\Users\\Public\\Music\\SoundFonts\\Colossus.SF2\\Colossus_SGM_overlay.sflist" );
+#elif defined(__APPLE__)
+                    LoadFonts( "/Volumes/Purgatory/Users/Public/Music/Soundfonts/Colossus.SF2/Colossus_SGM_overlay.sflist" );
 #else
                     LoadFonts( "/mnt/purgatory/Users/Public/Music/Soundfonts/Colossus.SF2/Colossus_SGM_overlay.sflist" );
 #endif
@@ -1147,9 +1149,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     BASS_Init( 0, SAMPLE_RATE, 0, NULL, NULL );
 
-#if defined(_WIN32) || defined(__APPLE__)
+#if defined(_WIN32)
     BASS_PluginLoad( "bassflac.dll", 0 );
     BASS_PluginLoad( "basswv.dll", 0 );
+#elif defined(__APPLE__)
+    BASS_PluginLoad( "libbassflac.dylib", 0 );
+    BASS_PluginLoad( "libbasswv.dylib", 0 );
 #else
     BASS_PluginLoad( "/home/chris/src/bass/x64/libbassflac.so", 0 );
     BASS_PluginLoad( "/home/chris/src/bass/x64/libbasswv.so", 0 );
