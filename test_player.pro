@@ -6,6 +6,7 @@ SUBDIRS = File_Extractor/prj/File_Extractor \
           Game_Music_Emu/prj/Game_Music_Emu \
           dumb/dumb/prj/dumb \
           midi_processing \
+          midisynth \
           psflib \
           PSXCore/Core \
           SegaCore/Core \
@@ -19,6 +20,7 @@ app.depends = File_Extractor/prj/File_Extractor \
               dumb/dumb/prj/dumb \
               hvl_replay \
               midi_processing \
+              midisynth \
               psflib \
               PSXCore/Core \
               SegaCore/Core \

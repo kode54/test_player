@@ -27,7 +27,13 @@ extern "C" {
 
 #include <midi_processor.h>
 
+#define USE_FMMIDI
+
+#ifdef USE_FMMIDI
+#include <fmmidi.hpp>
+#else
 #include <bassmidi.h>
+#endif
 
 #include <psflib.h>
 #include <psf2fs.h>
@@ -130,13 +136,14 @@ static DUMBFILE_SYSTEM mem_dfs = {
 };
 
 
-
+#ifndef USE_FMMIDI
 static unsigned int font_count = 0;
 static HSOUNDFONT * hFonts = NULL;
 static HSTREAM hStream = 0;
 
 static void FreeFonts();
 static void LoadFonts(const char * name);
+#endif
 
 void * stdio_fopen( const char * path )
 {
@@ -563,9 +570,49 @@ public:
             midi_container midifile;
             if ( midi_processor::process_file( data, extension, midifile ) )
             {
+#ifdef USE_FMMIDI
+                midisynth::opn::fm_note_factory * factory = new midisynth::opn::fm_note_factory;
+#endif
+/*
+				FILE* fp = fopen("programs.txt", "rt");
+				if(!fp){
+					delete factory;
+					return;
+				}else{
+					while(!feof(fp)){
+						int c = getc(fp);
+						if(c == '@'){
+							int prog;
+							midisynth::opn::FMPARAMETER p;
+							if(fscanf(fp, "%d%d%d%d", &prog, &p.ALG, &p.FB, &p.LFO) == 4
+								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op1.AR, &p.op1.DR, &p.op1.SR, &p.op1.RR, &p.op1.SL, &p.op1.TL, &p.op1.KS, &p.op1.ML, &p.op1.DT, &p.op1.AMS) == 10
+								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op2.AR, &p.op2.DR, &p.op2.SR, &p.op2.RR, &p.op2.SL, &p.op2.TL, &p.op2.KS, &p.op2.ML, &p.op2.DT, &p.op2.AMS) == 10
+								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op3.AR, &p.op3.DR, &p.op3.SR, &p.op3.RR, &p.op3.SL, &p.op3.TL, &p.op3.KS, &p.op3.ML, &p.op3.DT, &p.op3.AMS) == 10
+								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op4.AR, &p.op4.DR, &p.op4.SR, &p.op4.RR, &p.op4.SL, &p.op4.TL, &p.op4.KS, &p.op4.ML, &p.op4.DT, &p.op4.AMS) == 10){
+									factory->set_program(prog, p);
+							}
+						}else if(c == '*'){
+							int prog;
+							midisynth::opn::DRUMPARAMETER p;
+							if(fscanf(fp, "%d%d%d%d%d%d%d", &prog, &p.ALG, &p.FB, &p.LFO, &p.key, &p.panpot, &p.assign) == 7
+								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op1.AR, &p.op1.DR, &p.op1.SR, &p.op1.RR, &p.op1.SL, &p.op1.TL, &p.op1.KS, &p.op1.ML, &p.op1.DT, &p.op1.AMS) == 10
+								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op2.AR, &p.op2.DR, &p.op2.SR, &p.op2.RR, &p.op2.SL, &p.op2.TL, &p.op2.KS, &p.op2.ML, &p.op2.DT, &p.op2.AMS) == 10
+								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op3.AR, &p.op3.DR, &p.op3.SR, &p.op3.RR, &p.op3.SL, &p.op3.TL, &p.op3.KS, &p.op3.ML, &p.op3.DT, &p.op3.AMS) == 10
+								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op4.AR, &p.op4.DR, &p.op4.SR, &p.op4.RR, &p.op4.SL, &p.op4.TL, &p.op4.KS, &p.op4.ML, &p.op4.DT, &p.op4.AMS) == 10){
+									factory->set_drum_program(prog, p);
+							}
+						}
+					}
+					fclose(fp);
+				}
+
+				midisynth::synthesizer * synth = new midisynth::synthesizer(factory);
+#else
                 hStream = BASS_MIDI_StreamCreate( 16, BASS_STREAM_DECODE | BASS_MIDI_SINCINTER, SAMPLE_RATE );
                 if ( hStream )
+#endif
                 {
+#ifndef USE_FMMIDI
 #ifdef _WIN32
                     LoadFonts( "E:\\Users\\Public\\Music\\SoundFonts\\Colossus.SF2\\Colossus_SGM_overlay.sflist" );
 #elif defined(__APPLE__)
@@ -575,7 +622,7 @@ public:
 #endif
 
                     BASS_MIDI_StreamEvent( hStream, 0, MIDI_EVENT_SYSTEM, MIDI_SYSTEM_DEFAULT );
-
+#endif
                     std::vector<midi_stream_event> stream;
                     system_exclusive_table sysex;
 
@@ -601,7 +648,6 @@ public:
 
                         while ( it < end && running )
                         {
-                            unsigned index = it - stream.begin();
                             unsigned target_timestamp = it->m_timestamp;
                             if ( target_timestamp > loop_end ) target_timestamp = loop_end;
                             unsigned delta = target_timestamp - timestamp;
@@ -613,7 +659,11 @@ public:
                                 {
 
                                     unsigned int todo = std::min( sample_data, 2048u );
+#ifdef USE_FMMIDI
+                                    synth->synthesize( sample_buffer, todo, SAMPLE_RATE );
+#else
                                     BASS_ChannelGetData( hStream, &sample_buffer, todo * 2 * sizeof(short) );
+#endif
                                     ao_play( dev, (char*) sample_buffer, todo * 2 * sizeof(short) );
                                     sample_data -= todo;
                                 }
@@ -635,7 +685,11 @@ public:
                                     buffer[ 2 ] = ( it->m_event >> 16 ) & 0xFF;
                                     count = 3;
                                 }
+#ifdef USE_FMMIDI
+                                synth->midi_event( buffer[0], buffer[1], buffer[2] );
+#else
                                 BASS_MIDI_StreamEvents( hStream, BASS_MIDI_EVENTS_RAW, buffer, count );
+#endif
                             }
                             else
                             {
@@ -644,7 +698,11 @@ public:
                                 std::size_t s_size;
                                 std::size_t s_port;
                                 sysex.get_entry( index, s_data, s_size, s_port );
+#ifdef USE_FMMIDI
+                                synth->sysex_message( s_data, s_size );
+#else
                                 BASS_MIDI_StreamEvents( hStream, BASS_MIDI_EVENTS_RAW, s_data, s_size );
+#endif
                             }
                             if ( ++it >= end )
                             {
@@ -656,12 +714,18 @@ public:
 
                         ao_close( dev );
                     }
-
+#ifndef USE_FMMIDI
                     BASS_StreamFree( hStream );
                     hStream = 0;
 
                     FreeFonts();
+#endif
                 }
+*/
+#ifdef USE_FMMIDI
+                //delete synth;
+                delete factory;
+#endif
             }
             else
             {
@@ -1047,6 +1111,7 @@ public:
     }
 };
 
+#ifndef USE_FMMIDI
 void FreeFonts()
 {
     unsigned i;
@@ -1130,7 +1195,7 @@ void LoadFonts(const char * name)
         }
     }
 }
-
+#endif
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -1145,6 +1210,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ao_initialize();
 
+#ifndef USE_FMMIDI
     BASS_SetConfig(BASS_CONFIG_UPDATEPERIOD, 10);
 
     BASS_Init( 0, SAMPLE_RATE, 0, NULL, NULL );
@@ -1158,6 +1224,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #else
     BASS_PluginLoad( "/home/chris/src/bass/x64/libbassflac.so", 0 );
     BASS_PluginLoad( "/home/chris/src/bass/x64/libbasswv.so", 0 );
+#endif
 #endif
 
     {
@@ -1211,7 +1278,9 @@ MainWindow::~MainWindow()
     delete thread;
     delete ui;
 
+#ifndef USE_FMMIDI
     BASS_Free();
+#endif
 
     ao_shutdown();
 

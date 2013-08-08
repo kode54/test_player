@@ -1,24 +1,24 @@
 [submodule "Game_Music_Emu"]
 	path = Game_Music_Emu
-	url = git@github.com:kode54/Game_Music_Emu.git
+	url = git@bitbucket.org:kode54/game_music_emu.git
 [submodule "File_Extractor"]
 	path = File_Extractor
-	url = git@github.com:kode54/File_Extractor.git
+	url = git@bitbucket.org:kode54/file_extractor.git
 [submodule "dumb"]
 	path = dumb
-	url = git@github.com:kode54/dumb.git
+	url = git@bitbucket.org:kode54/dumb.git
 [submodule "midi_processing"]
 	path = midi_processing
 	url = git@github.com:kode54/midi_processing.git
 [submodule "SegaCore"]
 	path = SegaCore
-	url = git@github.com:kode54/Highly_Theoretical.git
+	url = git@bitbucket.org:kode54/highly-theoretical.git
 [submodule "PSXCore"]
 	path = PSXCore
-	url = git@github.com:kode54/Highly_Experimental.git
+	url = git@bitbucket.org:kode54/highly-experimental.git
 [submodule "QSoundCore"]
 	path = QSoundCore
-	url = git@github.com:kode54/Highly_Quixotic.git
+	url = git@bitbucket.org:kode54/highly-quixotic.git
 [submodule "psflib"]
 	path = psflib
 	url = git@github.com:kode54/psflib.git
@@ -27,7 +27,10 @@
 	url = git@github.com:kode54/viogsf.git
 [submodule "hvl_replay"]
 	path = hvl_replay
-	url = git@github.com:kode54/foo_input_hvl
+	url = git@bitbucket.org:kode54/foo_input_hvl.git
 [submodule "libsfm"]
 	path = libsfm
 	url = git@github.com:kode54/bsnes-libretro-cplusplus98.git
+[submodule "midisynth"]
+	path = midisynth
+	url = git@bitbucket.org:kode54/midisynth.git
