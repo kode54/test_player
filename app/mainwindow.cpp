@@ -572,8 +572,7 @@ public:
             {
 #ifdef USE_FMMIDI
                 midisynth::opn::fm_note_factory * factory = new midisynth::opn::fm_note_factory;
-#endif
-/*
+
 				FILE* fp = fopen("programs.txt", "rt");
 				if(!fp){
 					delete factory;
@@ -721,9 +720,8 @@ public:
                     FreeFonts();
 #endif
                 }
-*/
 #ifdef USE_FMMIDI
-                //delete synth;
+                delete synth;
                 delete factory;
 #endif
             }
@@ -1233,7 +1231,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #elif defined(__APPLE__)
         FILE * f = fopen( "/Volumes/Purgatory/emulate/ps2/pcsx2/bios/Scph39001.bin", "rb");
 #else
-        FILE * f = fopen( "/home/chris/ps2bios", "rb" );
+        FILE * f = fopen( "/home/parallels/ps2bios", "rb" );
 #endif
         fseek( f, 0, SEEK_END );
         int bios_size = ftell( f );

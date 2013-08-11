@@ -19,7 +19,9 @@ macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -stdlib=libc++
 LIBS += -L$$OUT_PWD/../../../../bass
 LIBS += -L$$OUT_PWD/../../../../bass/c
 
-LIBS += -lao -lbassmidi -lbass -lm
+#LIBS += -lbassmidi -lbass
+
+LIBS += -lao -lm
 
 INCLUDEPATH += ../../../../bass
 INCLUDEPATH += ../../../../bass/c
