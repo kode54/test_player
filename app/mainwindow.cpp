@@ -584,6 +584,8 @@ public:
                                                                         (insdata->flags & adlinsdata::Flag_Pseudo4op) ? midisynth::opl::FMPARAMETER::mode_double :
                                                                                                                         midisynth::opl::FMPARAMETER::mode_fourop;
                     param.tone = insdata->tone;
+                    param.key_on_ms = insdata->ms_sound_kon;
+                    param.key_off_ms = insdata->ms_sound_koff;
                     const struct adldata * ins = &adl[insdata->adlno1];
                     param.ops[0].modulator_E862 = ins->modulator_E862;
                     param.ops[0].carrier_E862 = ins->carrier_E862;
