@@ -30,7 +30,8 @@ extern "C" {
 #define USE_FMMIDI
 
 #ifdef USE_FMMIDI
-#include <fmmidi.hpp>
+#include <oplmidi.hpp>
+#include <adldata.hpp>
 #else
 #include <bassmidi.h>
 #endif
@@ -571,39 +572,36 @@ public:
             if ( midi_processor::process_file( data, extension, midifile ) )
             {
 #ifdef USE_FMMIDI
-                midisynth::opn::fm_note_factory * factory = new midisynth::opn::fm_note_factory;
+                midisynth::opl::fm_note_factory * factory = new midisynth::opl::fm_note_factory;
 
-				FILE* fp = fopen("programs.txt", "rt");
-				if(!fp){
-					delete factory;
-					return;
-				}else{
-					while(!feof(fp)){
-						int c = getc(fp);
-						if(c == '@'){
-							int prog;
-							midisynth::opn::FMPARAMETER p;
-							if(fscanf(fp, "%d%d%d%d", &prog, &p.ALG, &p.FB, &p.LFO) == 4
-								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op1.AR, &p.op1.DR, &p.op1.SR, &p.op1.RR, &p.op1.SL, &p.op1.TL, &p.op1.KS, &p.op1.ML, &p.op1.DT, &p.op1.AMS) == 10
-								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op2.AR, &p.op2.DR, &p.op2.SR, &p.op2.RR, &p.op2.SL, &p.op2.TL, &p.op2.KS, &p.op2.ML, &p.op2.DT, &p.op2.AMS) == 10
-								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op3.AR, &p.op3.DR, &p.op3.SR, &p.op3.RR, &p.op3.SL, &p.op3.TL, &p.op3.KS, &p.op3.ML, &p.op3.DT, &p.op3.AMS) == 10
-								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op4.AR, &p.op4.DR, &p.op4.SR, &p.op4.RR, &p.op4.SL, &p.op4.TL, &p.op4.KS, &p.op4.ML, &p.op4.DT, &p.op4.AMS) == 10){
-									factory->set_program(prog, p);
-							}
-						}else if(c == '*'){
-							int prog;
-							midisynth::opn::DRUMPARAMETER p;
-							if(fscanf(fp, "%d%d%d%d%d%d%d", &prog, &p.ALG, &p.FB, &p.LFO, &p.key, &p.panpot, &p.assign) == 7
-								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op1.AR, &p.op1.DR, &p.op1.SR, &p.op1.RR, &p.op1.SL, &p.op1.TL, &p.op1.KS, &p.op1.ML, &p.op1.DT, &p.op1.AMS) == 10
-								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op2.AR, &p.op2.DR, &p.op2.SR, &p.op2.RR, &p.op2.SL, &p.op2.TL, &p.op2.KS, &p.op2.ML, &p.op2.DT, &p.op2.AMS) == 10
-								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op3.AR, &p.op3.DR, &p.op3.SR, &p.op3.RR, &p.op3.SL, &p.op3.TL, &p.op3.KS, &p.op3.ML, &p.op3.DT, &p.op3.AMS) == 10
-								&& fscanf(fp, "%d%d%d%d%d%d%d%d%d%d", &p.op4.AR, &p.op4.DR, &p.op4.SR, &p.op4.RR, &p.op4.SL, &p.op4.TL, &p.op4.KS, &p.op4.ML, &p.op4.DT, &p.op4.AMS) == 10){
-									factory->set_drum_program(prog, p);
-							}
-						}
-					}
-					fclose(fp);
-				}
+                enum { bank_number = 59 };
+
+                for ( unsigned i = 0; i < 256; ++i )
+                {
+                    struct midisynth::opl::FMPARAMETER param;
+                    const struct adlinsdata * insdata = &adlins[ banks[bank_number][i] ];
+                    param.mode = (insdata->adlno1 == insdata->adlno2) ? midisynth::opl::FMPARAMETER::mode_single :
+                                                                        (insdata->flags & adlinsdata::Flag_Pseudo4op) ? midisynth::opl::FMPARAMETER::mode_double :
+                                                                                                                        midisynth::opl::FMPARAMETER::mode_fourop;
+                    param.tone = insdata->tone;
+                    const struct adldata * ins = &adl[insdata->adlno1];
+                    param.ops[0].modulator_E862 = ins->modulator_E862;
+                    param.ops[0].carrier_E862 = ins->carrier_E862;
+                    param.ops[0].modulator_40 = ins->modulator_40;
+                    param.ops[0].carrier_40 = ins->carrier_40;
+                    param.ops[0].feedconn = ins->feedconn;
+                    param.ops[0].finetune = ins->finetune;
+                    ins = &adl[insdata->adlno2];
+                    param.ops[1].modulator_E862 = ins->modulator_E862;
+                    param.ops[1].carrier_E862 = ins->carrier_E862;
+                    param.ops[1].modulator_40 = ins->modulator_40;
+                    param.ops[1].carrier_40 = ins->carrier_40;
+                    param.ops[1].feedconn = ins->feedconn;
+                    param.ops[1].finetune = ins->finetune;
+
+                    if (i < 128) factory->set_program(i, param);
+                    else factory->set_drum_program(i - 128, param);
+                }
 
 				midisynth::synthesizer * synth = new midisynth::synthesizer(factory);
 #else
