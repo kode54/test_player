@@ -574,7 +574,7 @@ public:
 #ifdef USE_FMMIDI
                 midisynth::opl::fm_note_factory * factory = new midisynth::opl::fm_note_factory;
 
-                enum { bank_number = 59 };
+                enum { bank_number = 14 };
 
                 for ( unsigned i = 0; i < 256; ++i )
                 {
