@@ -28,9 +28,6 @@
 [submodule "hvl_replay"]
 	path = hvl_replay
 	url = git@bitbucket.org:kode54/foo_input_hvl.git
-[submodule "libsfm"]
-	path = libsfm
-	url = git@github.com:kode54/bsnes-libretro-cplusplus98.git
 [submodule "midisynth"]
 	path = midisynth
 	url = git@bitbucket.org:kode54/midisynth.git
