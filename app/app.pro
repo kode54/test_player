@@ -150,8 +150,8 @@ else:unix: LIBS += -L$$OUT_PWD/../hvl_replay/ -lhvl_replay
 INCLUDEPATH += $$PWD/../hvl_replay
 DEPENDPATH += $$PWD/../hvl_replay
 
-win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../hvl_replay/release/hvl_replay.lib
-else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../hvl_replay/debug/hvl_replay.lib
+win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../hvl_replay/release/libhvl_replay.a
+else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../hvl_replay/debug/libhvl_replay.a
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../hvl_replay/libhvl_replay.a
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../midisynth/release/ -lmidisynth
@@ -161,8 +161,8 @@ else:unix: LIBS += -L$$OUT_PWD/../midisynth/ -lmidisynth
 INCLUDEPATH += $$PWD/../midisynth
 DEPENDPATH += $$PWD/../midisynth
 
-win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../midisynth/release/midisynth.lib
-else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../midisynth/debug/midisynth.lib
+win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../midisynth/release/libmidisynth.a
+else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../midisynth/debug/libmidisynth.a
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../midisynth/libmidisynth.a
 
 LIBS += -lz
