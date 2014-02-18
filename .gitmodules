@@ -31,3 +31,6 @@
 [submodule "midisynth"]
 	path = midisynth
 	url = git@bitbucket.org:kode54/midisynth.git
+[submodule "lazyusf"]
+	path = lazyusf
+	url = git@bitbucket.org:kode54/lazyusf.git

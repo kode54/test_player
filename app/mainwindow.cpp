@@ -54,6 +54,8 @@ extern "C" {
 
 #include "gba/GBA.h"
 
+#include <usf.h>
+
 #include "hvl_replay.h"
 
 #define SAMPLE_RATE 44100
@@ -500,11 +502,40 @@ struct gsf_sound_out : public GBASoundOut
     ao_device * dev;
     virtual ~gsf_sound_out() { }
     // Receives signed 16-bit stereo audio and a byte count
-    virtual void write(const void * samples, unsigned bytes)
+    virtual void write(const void * samples, unsigned long bytes)
     {
         ao_play(dev, (char*)samples, bytes);
     }
 };
+
+struct usf_loader_state
+{
+    uint32_t enable_compare;
+    uint32_t enable_fifo_full;
+    void * emu;
+};
+
+int usf_loader(void * context, const uint8_t * exe, size_t exe_size,
+               const uint8_t * reserved, size_t reserved_size)
+{
+    struct usf_loader_state * state = ( struct usf_loader_state * ) context;
+
+    if ( exe && exe_size > 0 ) return -1;
+
+    return usf_upload_section( state->emu, reserved, reserved_size );
+}
+
+int usf_info(void * context, const char * name, const char * value)
+{
+    struct usf_loader_state * state = ( struct usf_loader_state * ) context;
+
+    if ( strcasecmp( name, "_enablecompare" ) == 0 && strlen( value ) )
+        state->enable_compare = 1;
+    else if ( strcasecmp( name, "_enablefifofull" ) == 0 && strlen( value ) )
+        state->enable_fifo_full = 1;
+
+    return 0;
+}
 
 class PlayerThread : public QThread
 {
@@ -625,15 +656,17 @@ public:
                     std::vector<midi_stream_event> stream;
                     system_exclusive_table sysex;
 
-                    midifile.serialize_as_stream( 0, stream, sysex, midi_container::clean_flag_emidi );
+                    unsigned long loop_start_offset, loop_end_offset;
 
-                    midifile.scan_for_loops( true, true );
+                    midifile.scan_for_loops( true, true, true );
 
-                    unsigned loop_start = midifile.get_timestamp_loop_start( 0, true );
-                    unsigned loop_end   = midifile.get_timestamp_loop_end( 0, true );
+                    midifile.serialize_as_stream( 0, stream, sysex, loop_start_offset, loop_end_offset, midi_container::clean_flag_emidi );
 
-                    if ( loop_start == ~0u ) loop_start = 0;
-                    if ( loop_end == ~0u ) loop_end = (stream.end() - 1)->m_timestamp;
+                    if ( loop_start_offset == ~0ul ) loop_start_offset = 0;
+                    if ( loop_end_offset == ~0ul ) loop_end_offset = stream.size();
+
+                    unsigned loop_start = stream[loop_start_offset].m_timestamp;
+                    unsigned loop_end = stream[loop_end_offset].m_timestamp;
 
                     unsigned timestamp = 0;
 
@@ -893,6 +926,46 @@ public:
 
                             free( state.data );
                         }
+                    }
+                    else if ( psf_version == 0x21 )
+                    {
+                        usf_loader_state state;
+                        memset( &state, 0, sizeof(state) );
+
+                        state.emu = malloc( get_usf_state_size() );
+
+                        usf_clear( state.emu );
+
+                        if ( psf_load( path.toLocal8Bit().constData(), &stdio_callbacks, psf_version, usf_loader, &state, usf_info, &state ) > 0 )
+                        {
+                            int32_t sample_rate;
+
+                            usf_set_compare( state.emu, state.enable_compare );
+                            usf_set_fifo_full( state.emu, state.enable_fifo_full );
+
+                            usf_render( state.emu, 0, 0, &sample_rate );
+
+                            fmt.rate = sample_rate;
+
+                            dev = ao_open_live( ao_default_driver_id(), &fmt, NULL );
+
+                            if ( dev )
+                            {
+                                running = true;
+
+                                while ( running )
+                                {
+                                    usf_render( state.emu, sample_buffer, 2048, 0 );
+                                    ao_play( dev, (char *) sample_buffer, 2048 * 2 * sizeof(short) );
+                                }
+
+                                ao_close( dev );
+                            }
+
+                        }
+
+                        usf_shutdown( state.emu );
+                        free( state.emu );
                     }
                     else if ( psf_version == 0x22 )
                     {

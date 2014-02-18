@@ -12,6 +12,7 @@ SUBDIRS = File_Extractor/prj/File_Extractor \
           SegaCore/Core \
           QSoundCore/Core \
           viogsf \
+          lazyusf \
           hvl_replay \
           app
 
@@ -25,4 +26,5 @@ app.depends = File_Extractor/prj/File_Extractor \
               PSXCore/Core \
               SegaCore/Core \
               QSoundCore/Core \
-              viogsf
+              viogsf \
+              lazyusf

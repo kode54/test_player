@@ -132,6 +132,17 @@ win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../viogsf/rele
 else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../viogsf/debug/libviogsf.a
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../viogsf/libviogsf.a
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../lazyusf/release/ -llazyusf
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../lazyusf/debug/ -llazyusf
+else:unix: LIBS += -L$$OUT_PWD/../lazyusf/ -llazyusf
+
+INCLUDEPATH += $$PWD/../lazyusf
+DEPENDPATH += $$PWD/../lazyusf
+
+win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lazyusf/release/liblazyusf.a
+else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lazyusf/debug/liblazyusf.a
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../lazyusf/liblazyusf.a
+
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../hvl_replay/release/ -lhvl_replay
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../hvl_replay/debug/ -lhvl_replay
 else:unix: LIBS += -L$$OUT_PWD/../hvl_replay/ -lhvl_replay
